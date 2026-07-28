@@ -1032,98 +1032,33 @@
     if (e.key === 'Escape')     closeLightbox();
   });
 
-  // ── GALLERY SLIDER ──────────────────────────────────────────────
-  (function() {
-    // List your image filenames here — just add/remove names as you upload to the images/ folder.
-    // Supported: .jpg, .jpeg, .png, .webp, .gif
-    const IMAGE_FOLDER = 'images/';
-    const IMAGES = [
-      // Add your image filenames below, e.g.:
-      // { src: 'images/1.jpeg',  caption: 'Clean Water Project – Village Rahimabad' },
-      // { src: 'images/2.jpeg',    caption: 'Annual Community Meeting 2023' },
-      // { src: 'images/3.jpeg', caption: '2022 Flood Relief Distribution' },
-      // { src: 'women.jpg',     caption: "Women's Livelihood Training Program" },
-      // Leave empty to show the "coming soon" placeholder
-    ];
-
-    const slider    = document.getElementById('gallerySlider');
-    const wrap      = document.querySelector('.gallery-slider-wrap');
-    const empty     = document.getElementById('galEmpty');
-    const dotsEl    = document.getElementById('galDots');
-    const counter   = document.getElementById('galCounter');
-    const prevBtn   = document.getElementById('galPrev');
-    const nextBtn   = document.getElementById('galNext');
-
-    if (!IMAGES.length) {
-      // No images yet — show placeholder
-      empty.style.display = 'block';
-      wrap.style.display  = 'none';
-      return;
-    }
-
-    // Build slides
-    empty.style.display = 'none';
-    wrap.style.display  = 'block';
-
-    let current = 0;
-    let autoTimer;
-
-    IMAGES.forEach((img, i) => {
-      const slide = document.createElement('div');
-      slide.className = 'gal-slide';
-      slide.innerHTML = `
-        <img src="${IMAGE_FOLDER}${img.src}" alt="${img.caption || 'RLSO Gallery'}" loading="lazy"
-             onerror="this.parentElement.style.display='none'">
-        ${img.caption ? `<div class="gal-caption">${img.caption}</div>` : ''}
-      `;
-      // Click to open lightbox if available
-      slide.style.cursor = 'pointer';
-      slide.addEventListener('click', () => {
-        if (typeof openLightbox === 'function') {
-          openLightbox(IMAGE_FOLDER + img.src, img.caption || '');
-        }
-      });
-      slider.appendChild(slide);
-
-      // Dot
-      const dot = document.createElement('button');
-      dot.className = 'gal-dot' + (i === 0 ? ' active' : '');
-      dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
-      dot.addEventListener('click', () => goTo(i));
-      dotsEl.appendChild(dot);
-    });
-
-    function updateUI() {
-      slider.style.transform = `translateX(-${current * 100}%)`;
-      dotsEl.querySelectorAll('.gal-dot').forEach((d, i) =>
-        d.classList.toggle('active', i === current)
-      );
-      counter.textContent = `${current + 1} / ${IMAGES.length}`;
-    }
-
-    function goTo(n) {
-      current = (n + IMAGES.length) % IMAGES.length;
-      updateUI();
-      resetAuto();
-    }
-
-    function resetAuto() {
-      clearInterval(autoTimer);
-      autoTimer = setInterval(() => goTo(current + 1), 4500);
-    }
-
-    prevBtn.addEventListener('click', () => goTo(current - 1));
-    nextBtn.addEventListener('click', () => goTo(current + 1));
-
-    // Touch / swipe support
-    let touchStartX = 0;
-    wrap.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-    wrap.addEventListener('touchend',   e => {
-      const diff = touchStartX - e.changedTouches[0].clientX;
-      if (Math.abs(diff) > 50) goTo(current + (diff > 0 ? 1 : -1));
-    }, { passive: true });
-
-    // Keyboard
+      slider.appendChild(slide);       
+  
+  // Dot      
+  const dot = document.createElement('button');      
+  dot.className = 'gal-dot' + (i === 0 ? ' active' : '');      
+  dot.setAttribute('aria-label', `Go to slide ${i + 1}`);      
+  dot.addEventListener('click', () => goTo(i));      
+  dotsEl.appendChild(dot);    });     
+  
+  function updateUI() {      
+  slider.style.transform = `translateX(-${current * 100}%)`;      
+  dotsEl.querySelectorAll('.gal-dot').forEach((d, i) =>        
+    d.classList.toggle('active', i === current)      );      
+  counter.textContent = `${current + 1} / ${IMAGES.length}`;    }     
+  
+  function goTo(n) {      
+  current = (n + IMAGES.length) % IMAGES.length;      
+  updateUI();      
+  resetAuto();    }     
+  
+  function resetAuto() {       
+  clearInterval(autoTimer);      
+  autoTimer = setInterval(() => goTo(current + 1), 4500);    }     
+  prevBtn.addEventListener('click', () => goTo(current - 1));    
+  nextBtn.addEventListener('click', () => goTo(current + 1));     
+  // Touch / swipe support    let touchStartX = 0;    wrap.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });    wrap.addEventListener('touchend',   e => {      const diff = touchStartX - e.changedTouches[0].clientX;      if (Math.abs(diff) > 50) goTo(current + (diff > 0 ? 1 : -1));    }, { passive: true });     
+  // Keyboard
     document.addEventListener('keydown', e => {
       const gs = document.getElementById('gallery');
       if (!gs) return;
