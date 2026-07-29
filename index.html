@@ -350,14 +350,21 @@
 
   /* Cards */
   .c3d-card { position: absolute; width: 280px; height: 360px; border-radius: 16px; overflow: hidden; cursor: pointer; transition: transform 0.55s cubic-bezier(.4,0,.2,1), opacity 0.55s ease, box-shadow 0.3s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
-  .c3d-card img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; transition: transform 0.4s ease; pointer-events: none; }
-  .c3d-card-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.75) 100%); opacity: 0; transition: opacity 0.3s; display: flex; align-items: flex-end; padding: 18px; }
+  .c3d-card img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; transition: transform 0.45s cubic-bezier(.4,0,.2,1); pointer-events: none; }
+  .c3d-card-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(0,0,0,0.82) 100%); opacity: 0; transition: opacity 0.35s; display: flex; align-items: flex-end; padding: 18px; }
   .c3d-card-overlay span { color: #fff; font-size: 13px; font-family: 'DM Sans', sans-serif; }
-  .c3d-card:hover .c3d-card-overlay { opacity: 1; }
 
-  /* Hover zoom icon */
-  .c3d-zoom-icon { position: absolute; top: 12px; right: 12px; background: rgba(201,168,76,0.85); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 14px; opacity: 0; transition: opacity 0.3s; }
-  .c3d-card:hover .c3d-zoom-icon { opacity: 1; }
+  /* Hover zoom — only on center card (.c3d-hovered added by JS) */
+  .c3d-card.c3d-hovered { box-shadow: 0 24px 80px rgba(201,168,76,0.35), 0 8px 32px rgba(0,0,0,0.7) !important; cursor: zoom-in; }
+  .c3d-card.c3d-hovered img { transform: scale(1.08); }
+  .c3d-card.c3d-hovered .c3d-card-overlay { opacity: 1; }
+  .c3d-card.c3d-hovered .c3d-zoom-icon { opacity: 1; transform: scale(1.15); }
+
+  /* Side cards get pointer cursor */
+  .c3d-card { cursor: pointer; }
+
+  /* Zoom icon */
+  .c3d-zoom-icon { position: absolute; top: 12px; right: 12px; background: rgba(201,168,76,0.9); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 15px; opacity: 0; transition: opacity 0.3s, transform 0.3s; }
 
   /* Nav buttons */
   .c3d-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(201,168,76,0.12); border: 1.5px solid rgba(201,168,76,0.45); color: var(--gold); width: 48px; height: 48px; border-radius: 50%; font-size: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 20; padding-bottom: 3px; }
@@ -1136,13 +1143,21 @@
         <div class="c3d-zoom-icon">🔍</div>
         <div class="c3d-card-overlay"><span>${img.caption || ''}</span></div>
       `;
-      // Hover → fullscreen
-      card.addEventListener('mouseenter', () => { if (i === current) openFs(i); });
-      // Click on non-center → navigate; click on center → fullscreen
+
+      // Hover on CENTER card → zoom in (CSS scale via class)
+      card.addEventListener('mouseenter', () => {
+        if (i === current) card.classList.add('c3d-hovered');
+      });
+      card.addEventListener('mouseleave', () => {
+        card.classList.remove('c3d-hovered');
+      });
+
+      // Click on CENTER card → open fullscreen; click on side card → navigate
       card.addEventListener('click', () => {
         if (i === current) openFs(i);
         else goTo(i);
       });
+
       track.appendChild(card);
       cards.push(card);
 
@@ -1211,6 +1226,7 @@
 
     function goTo(n) {
       current = (n + IMAGES.length) % IMAGES.length;
+      cards.forEach(c => c.classList.remove('c3d-hovered'));
       updateCarousel();
       resetAuto();
     }
