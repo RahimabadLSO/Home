@@ -1128,19 +1128,26 @@
       card.className = 'c3d-card';
       card.innerHTML = `
         <img src="${IMAGE_FOLDER}${img.src}" alt="${img.caption || 'RLSO Gallery ' + (i+1)}" loading="lazy">
-        <div class="c3d-zoom-icon">🔍</div>
         <div class="c3d-card-overlay"><span>${img.caption || ''}</span></div>
       `;
 
-      // Hover on CENTER card → zoom in (CSS scale via class)
+      const imgEl = card.querySelector('img');
+
+      // Hover → reveal full photo (object-fit: contain), no open
       card.addEventListener('mouseenter', () => {
-        if (i === current) card.classList.add('c3d-hovered');
+        imgEl.style.objectFit = 'contain';
+        card.style.background = '#111';
+        card.style.boxShadow = '0 24px 80px rgba(201,168,76,0.3), 0 8px 32px rgba(0,0,0,0.7)';
+        card.querySelector('.c3d-card-overlay').style.opacity = '1';
       });
       card.addEventListener('mouseleave', () => {
-        card.classList.remove('c3d-hovered');
+        imgEl.style.objectFit = 'cover';
+        card.style.background = '';
+        card.style.boxShadow = '';
+        card.querySelector('.c3d-card-overlay').style.opacity = '0';
       });
 
-      // Click on CENTER card → open fullscreen; click on side card → navigate
+      // Click → fullscreen (center) or navigate (side)
       card.addEventListener('click', () => {
         if (i === current) openFs(i);
         else goTo(i);
@@ -1214,7 +1221,13 @@
 
     function goTo(n) {
       current = (n + IMAGES.length) % IMAGES.length;
-      cards.forEach(c => c.classList.remove('c3d-hovered'));
+      // Reset any hovered card styles
+      cards.forEach(c => {
+        c.querySelector('img').style.objectFit = 'cover';
+        c.style.background = '';
+        c.style.boxShadow = '';
+        c.querySelector('.c3d-card-overlay').style.opacity = '0';
+      });
       updateCarousel();
       resetAuto();
     }
