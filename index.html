@@ -584,7 +584,7 @@
   </div>
 </section>
 
-  <!-- GALLERY SECTION -->
+  <!-- GALLERY SECTION (3D CAROUSEL) -->
 <section id="gallery">
   <div class="section-inner">
     <div class="sec-head reveal">
@@ -592,24 +592,35 @@
       <h2 class="sec-title">Our <span class="gold">Photo Gallery</span></h2>
       <p class="sec-sub">A visual journey through RLSO's community work, events and milestones across Rahimabad.</p>
     </div>
+  </div>
 
-    <!-- Slider Container -->
-    <div class="gallery-slider-wrap reveal">
-      <div class="gallery-slider" id="gallerySlider">
-        <!-- Slides injected by JS -->
-      </div>
-      <button class="gal-btn gal-prev" id="galPrev" aria-label="Previous">&#8249;</button>
-      <button class="gal-btn gal-next" id="galNext" aria-label="Next">&#8250;</button>
-      <div class="gal-dots" id="galDots"></div>
-      <div class="gal-counter" id="galCounter"></div>
-    </div>
+  <!-- 3D Carousel Track (full-width, outside section-inner) -->
+  <div class="c3d-outer" id="c3dOuter">
+    <div class="c3d-track" id="c3dTrack"></div>
+    <button class="c3d-btn c3d-prev" id="c3dPrev" aria-label="Previous">&#8249;</button>
+    <button class="c3d-btn c3d-next" id="c3dNext" aria-label="Next">&#8250;</button>
+  </div>
 
-    <!-- Empty state when no images -->
-    <div class="gal-empty" id="galEmpty">
+  <!-- Dots + caption -->
+  <div class="section-inner">
+    <div class="c3d-dots" id="c3dDots"></div>
+    <div class="c3d-caption" id="c3dCaption"></div>
+
+    <!-- Empty state -->
+    <div class="gal-empty" id="galEmpty" style="display:none;">
       <div class="gal-empty-icon">🖼️</div>
-      <p>Photos coming soon — add images to the <strong>images/</strong> folder in your GitHub repository to display them here automatically.</p>
-      <p class="gal-empty-hint">Supported formats: JPG, PNG, WEBP, GIF</p>
+      <p>Photos coming soon — add images to the <strong>images/</strong> folder in your GitHub repository.</p>
+      <p class="gal-empty-hint">Supported formats: JPG, JPEG, PNG, WEBP</p>
     </div>
+  </div>
+
+  <!-- Fullscreen overlay (hover/click) -->
+  <div class="gal-fullscreen" id="galFullscreen">
+    <button class="gal-fs-close" id="galFsClose" aria-label="Close">&#10005;</button>
+    <button class="gal-fs-prev" id="galFsPrev" aria-label="Previous">&#8249;</button>
+    <img class="gal-fs-img" id="galFsImg" src="" alt="">
+    <button class="gal-fs-next" id="galFsNext" aria-label="Next">&#8250;</button>
+    <div class="gal-fs-caption" id="galFsCaption"></div>
   </div>
 </section>
 
