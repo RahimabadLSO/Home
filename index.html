@@ -1066,11 +1066,10 @@
     if (e.key === 'Escape')     closeLightbox();
   });
 
-  // ── GALLERY SLIDER ──────────────────────────────────────────────
+  // ── GALLERY 3D CAROUSEL ─────────────────────────────────────────
   (function() {
-    // List your image filenames here — just add/remove names as you upload to the images/ folder.
-    // Supported: .jpg, .jpeg, .png, .webp, .gif
     const IMAGE_FOLDER = 'images/';
+    // ↓ Add your image filenames and captions here
     const IMAGES = [
       { src: '1.jpeg', caption: '' },
       { src: '2.jpeg', caption: '' },
@@ -1104,98 +1103,197 @@
       { src: '30.jpg', caption: '' },
     ];
 
-    const slider    = document.getElementById('gallerySlider');
-    const wrap      = document.querySelector('.gallery-slider-wrap');
-    const empty     = document.getElementById('galEmpty');
-    const dotsEl    = document.getElementById('galDots');
-    const counter   = document.getElementById('galCounter');
-    const prevBtn   = document.getElementById('galPrev');
-    const nextBtn   = document.getElementById('galNext');
+    const track   = document.getElementById('c3dTrack');
+    const dotsEl  = document.getElementById('c3dDots');
+    const caption = document.getElementById('c3dCaption');
+    const prevBtn = document.getElementById('c3dPrev');
+    const nextBtn = document.getElementById('c3dNext');
+    const empty   = document.getElementById('galEmpty');
 
-    if (!IMAGES.length) {
-      // No images yet — show placeholder
-      empty.style.display = 'block';
-      wrap.style.display  = 'none';
-      return;
-    }
+    // Fullscreen elements
+    const fs        = document.getElementById('galFullscreen');
+    const fsImg     = document.getElementById('galFsImg');
+    const fsCap     = document.getElementById('galFsCaption');
+    const fsClose   = document.getElementById('galFsClose');
+    const fsPrev    = document.getElementById('galFsPrev');
+    const fsNext    = document.getElementById('galFsNext');
 
-    // Build slides
+    if (!IMAGES.length) { empty.style.display = 'block'; return; }
     empty.style.display = 'none';
-    wrap.style.display  = 'block';
 
     let current = 0;
     let autoTimer;
+    let fsIndex = 0;
+    let touchStartX = 0;
 
+    // ── Build cards ──
+    const cards = [];
     IMAGES.forEach((img, i) => {
-      const slide = document.createElement('div');
-      slide.className = 'gal-slide';
-      slide.innerHTML = `
-        <img src="${IMAGE_FOLDER}${img.src}" alt="${img.caption || 'RLSO Gallery'}" loading="lazy"
-             onerror="this.parentElement.style.display='none'">
-        ${img.caption ? `<div class="gal-caption">${img.caption}</div>` : ''}
+      const card = document.createElement('div');
+      card.className = 'c3d-card';
+      card.innerHTML = `
+        <img src="${IMAGE_FOLDER}${img.src}" alt="${img.caption || 'RLSO Gallery ' + (i+1)}" loading="lazy">
+        <div class="c3d-zoom-icon">🔍</div>
+        <div class="c3d-card-overlay"><span>${img.caption || ''}</span></div>
       `;
-      // Click to open lightbox if available
-      slide.style.cursor = 'pointer';
-      slide.addEventListener('click', () => {
-        if (typeof openLightbox === 'function') {
-          openLightbox(IMAGE_FOLDER + img.src, img.caption || '');
-        }
+      // Hover → fullscreen
+      card.addEventListener('mouseenter', () => { if (i === current) openFs(i); });
+      // Click on non-center → navigate; click on center → fullscreen
+      card.addEventListener('click', () => {
+        if (i === current) openFs(i);
+        else goTo(i);
       });
-      slider.appendChild(slide);
+      track.appendChild(card);
+      cards.push(card);
 
       // Dot
       const dot = document.createElement('button');
-      dot.className = 'gal-dot' + (i === 0 ? ' active' : '');
-      dot.setAttribute('aria-label', `Go to slide ${i + 1}`);
+      dot.className = 'c3d-dot' + (i === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', `Slide ${i + 1}`);
       dot.addEventListener('click', () => goTo(i));
       dotsEl.appendChild(dot);
     });
 
-    function updateUI() {
-      slider.style.transform = `translateX(-${current * 100}%)`;
-      dotsEl.querySelectorAll('.gal-dot').forEach((d, i) =>
+    // ── 3D position logic ──
+    function getCardStyle(offset, total) {
+      const isMobile = window.innerWidth < 768;
+      const isSmall  = window.innerWidth < 480;
+      // spacing & depth per position
+      const spacing  = isSmall ? 80 : isMobile ? 110 : 200;
+      const depthMax = isSmall ? 80 : isMobile ? 120 : 220;
+      const rotY     = isSmall ? 28 : isMobile ? 32 : 42;
+      const scaleMin = 0.62;
+
+      const absOff   = Math.abs(offset);
+      const visible  = isMobile ? 2 : 3; // how many cards each side
+
+      if (absOff > visible) return { display: 'none' };
+
+      const tx      = offset * spacing;
+      const tz      = -(absOff * depthMax);
+      const ry      = offset * -rotY;
+      const scale   = 1 - absOff * ((1 - scaleMin) / (visible + 1));
+      const opacity = absOff > visible - 0.5 ? 0.2 : 1 - absOff * 0.18;
+      const zIndex  = 10 - absOff;
+
+      return {
+        display: 'block',
+        transform: `translateX(${tx}px) translateZ(${tz}px) rotateY(${ry}deg) scale(${scale})`,
+        opacity,
+        zIndex,
+        boxShadow: absOff === 0
+          ? '0 16px 60px rgba(201,168,76,0.25), 0 8px 32px rgba(0,0,0,0.6)'
+          : '0 8px 32px rgba(0,0,0,0.5)',
+      };
+    }
+
+    function updateCarousel() {
+      const n = IMAGES.length;
+      cards.forEach((card, i) => {
+        // shortest path offset (-n/2 .. n/2)
+        let offset = i - current;
+        if (offset > n / 2)  offset -= n;
+        if (offset < -n / 2) offset += n;
+
+        const s = getCardStyle(offset, n);
+        if (s.display === 'none') {
+          card.style.display = 'none';
+        } else {
+          Object.assign(card.style, s);
+        }
+      });
+
+      dotsEl.querySelectorAll('.c3d-dot').forEach((d, i) =>
         d.classList.toggle('active', i === current)
       );
-      counter.textContent = `${current + 1} / ${IMAGES.length}`;
+      caption.textContent = IMAGES[current].caption || '';
     }
 
     function goTo(n) {
       current = (n + IMAGES.length) % IMAGES.length;
-      updateUI();
+      updateCarousel();
       resetAuto();
     }
 
     function resetAuto() {
       clearInterval(autoTimer);
-      autoTimer = setInterval(() => goTo(current + 1), 3500);
+      autoTimer = setInterval(() => goTo(current + 1), 4000);
     }
 
     prevBtn.addEventListener('click', () => goTo(current - 1));
     nextBtn.addEventListener('click', () => goTo(current + 1));
 
-    // Touch / swipe support
-    let touchStartX = 0;
-    wrap.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
-    wrap.addEventListener('touchend',   e => {
+    // Touch / swipe
+    track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', e => {
       const diff = touchStartX - e.changedTouches[0].clientX;
-      if (Math.abs(diff) > 50) goTo(current + (diff > 0 ? 1 : -1));
+      if (Math.abs(diff) > 40) goTo(current + (diff > 0 ? 1 : -1));
     }, { passive: true });
 
-    // Keyboard
+    // Keyboard (only when gallery in view)
     document.addEventListener('keydown', e => {
-      const gs = document.getElementById('gallery');
-      if (!gs) return;
-      const rect = gs.getBoundingClientRect();
+      if (fs.classList.contains('open')) return; // let fullscreen handle it
+      const rect = document.getElementById('gallery').getBoundingClientRect();
       if (rect.top > window.innerHeight || rect.bottom < 0) return;
       if (e.key === 'ArrowRight') goTo(current + 1);
       if (e.key === 'ArrowLeft')  goTo(current - 1);
     });
 
-    // Pause on hover
-    wrap.addEventListener('mouseenter', () => clearInterval(autoTimer));
-    wrap.addEventListener('mouseleave', resetAuto);
+    // Pause auto on hover
+    track.addEventListener('mouseenter', () => clearInterval(autoTimer));
+    track.addEventListener('mouseleave', resetAuto);
 
-    updateUI();
+    // Recalc on resize
+    window.addEventListener('resize', updateCarousel);
+
+    // ── Fullscreen viewer ──
+    function openFs(idx) {
+      fsIndex = idx;
+      fsImg.src = IMAGE_FOLDER + IMAGES[idx].src;
+      fsCap.textContent = IMAGES[idx].caption || '';
+      fs.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      clearInterval(autoTimer);
+    }
+
+    function closeFs() {
+      fs.classList.remove('open');
+      document.body.style.overflow = '';
+      resetAuto();
+    }
+
+    function fsNav(dir) {
+      fsIndex = (fsIndex + dir + IMAGES.length) % IMAGES.length;
+      fsImg.style.opacity = '0';
+      setTimeout(() => {
+        fsImg.src = IMAGE_FOLDER + IMAGES[fsIndex].src;
+        fsCap.textContent = IMAGES[fsIndex].caption || '';
+        fsImg.style.opacity = '1';
+      }, 150);
+    }
+
+    fsClose.addEventListener('click', closeFs);
+    fsPrev.addEventListener('click', () => fsNav(-1));
+    fsNext.addEventListener('click', () => fsNav(1));
+    fs.addEventListener('click', e => { if (e.target === fs) closeFs(); });
+
+    // Keyboard in fullscreen
+    document.addEventListener('keydown', e => {
+      if (!fs.classList.contains('open')) return;
+      if (e.key === 'ArrowRight') fsNav(1);
+      if (e.key === 'ArrowLeft')  fsNav(-1);
+      if (e.key === 'Escape')     closeFs();
+    });
+
+    // Touch swipe in fullscreen
+    let fsTouchX = 0;
+    fs.addEventListener('touchstart', e => { fsTouchX = e.touches[0].clientX; }, { passive: true });
+    fs.addEventListener('touchend', e => {
+      const diff = fsTouchX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 40) fsNav(diff > 0 ? 1 : -1);
+    }, { passive: true });
+
+    updateCarousel();
     resetAuto();
   })();
 </script>
