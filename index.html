@@ -1087,15 +1087,9 @@
   // ── GALLERY 3D CAROUSEL ─────────────────────────────────────────
   (function() {
     const IMAGE_FOLDER = 'images/';
-    // ↓ Edit title, desc, tag, date, location,
+    // ↓ Add your image filenames and captions here
     const IMAGES = [
-      {
-        src: '1.jpeg',
-        tag: 'Internal',
-        title: 'AGM 2024',
-        desc: 'Farewell party from new BoDs to Old BoDs, for the appreciation of past service.',
-        date: 'ADec, 2024', location: 'RLSO's Office',
-      },
+      { src: '1.jpg', caption: '' },
       { src: '2.jpg', caption: '' },
       { src: '3.jpg', caption: '' },
       { src: '4.jpg', caption: '' },
@@ -1160,14 +1154,10 @@
       { src: '64.jpg', caption: '' },
     ];
 
-    const track      = document.getElementById('c3dTrack');
-    const dotsEl     = document.getElementById('c3dDots');
-    const detailCard = document.getElementById('c3dDetailCard');
-    const detailTag  = document.getElementById('c3dDetailTag');
-    const detailTitle= document.getElementById('c3dDetailTitle');
-    const detailDesc = document.getElementById('c3dDetailDesc');
-    const detailMeta = document.getElementById('c3dDetailMeta');
-    const prevBtn    = document.getElementById('c3dPrev');
+    const track   = document.getElementById('c3dTrack');
+    const dotsEl  = document.getElementById('c3dDots');
+    const caption = document.getElementById('c3dCaption');
+    const prevBtn = document.getElementById('c3dPrev');
     const nextBtn = document.getElementById('c3dNext');
     const empty   = document.getElementById('galEmpty');
 
@@ -1189,56 +1179,34 @@
 
     // ── Build cards ──
     const cards = [];
-    let activeDetail = -1;
-
     IMAGES.forEach((img, i) => {
       const card = document.createElement('div');
       card.className = 'c3d-card';
       card.innerHTML = `
-        <div class="c3d-img-wrap">
-          <img
-            src="${IMAGE_FOLDER}${img.src}"
-            alt="${img.title || 'RLSO Gallery ' + (i+1)}"
-            ${i === 0 ? 'loading="eager"' : 'loading="lazy"'}
-            decoding="async"
-            class="c3d-img c3d-img-loading"
-            onload="this.classList.remove('c3d-img-loading')"
-          >
-        </div>
-        <div class="c3d-card-overlay">
-          <div class="c3d-slide-panel">
-            <div class="c3d-slide-tag">${img.tag || ''}</div>
-            <div class="c3d-slide-title">${img.title || ''}</div>
-            <div class="c3d-slide-desc">${img.desc ? img.desc.substring(0,80) + (img.desc.length > 80 ? '…' : '') : ''}</div>
-          </div>
-        </div>
+        <img src="${IMAGE_FOLDER}${img.src}" alt="${img.caption || 'RLSO Gallery ' + (i+1)}" loading="lazy">
+        <div class="c3d-card-overlay"><span>${img.caption || ''}</span></div>
       `;
 
-      const imgEl = card.querySelector('.c3d-img');
+      const imgEl = card.querySelector('img');
 
-      // Hover → reveal full photo + slide-up panel (CSS handles panel, JS handles objectFit)
+      // Hover → reveal full photo (object-fit: contain), no open
       card.addEventListener('mouseenter', () => {
         imgEl.style.objectFit = 'contain';
+        card.style.background = '#111';
         card.style.boxShadow = '0 24px 80px rgba(201,168,76,0.3), 0 8px 32px rgba(0,0,0,0.7)';
+        card.querySelector('.c3d-card-overlay').style.opacity = '1';
       });
       card.addEventListener('mouseleave', () => {
         imgEl.style.objectFit = 'cover';
+        card.style.background = '';
         card.style.boxShadow = '';
+        card.querySelector('.c3d-card-overlay').style.opacity = '0';
       });
 
-      // Click → show detail card below (center) or navigate (side)
+      // Click → fullscreen (center) or navigate (side)
       card.addEventListener('click', () => {
-        if (i === current) {
-          if (activeDetail === i) {
-            // toggle off
-            detailCard.classList.remove('open');
-            activeDetail = -1;
-          } else {
-            showDetail(i);
-          }
-        } else {
-          goTo(i);
-        }
+        if (i === current) openFs(i);
+        else goTo(i);
       });
 
       track.appendChild(card);
@@ -1307,31 +1275,15 @@
       caption.textContent = IMAGES[current].caption || '';
     }
 
-    function showDetail(idx) {
-      const img = IMAGES[idx];
-      activeDetail = idx;
-      detailTag.textContent   = img.tag || '';
-      detailTitle.textContent = img.title || '';
-      detailDesc.textContent  = img.desc || '';
-      detailMeta.innerHTML = [
-        img.date     ? `<div class="c3d-detail-meta-item"><span class="icon">📅</span>${img.date}</div>` : '',
-        img.location ? `<div class="c3d-detail-meta-item"><span class="icon">📍</span>${img.location}</div>` : '',
-        img.impact   ? `<div class="c3d-detail-meta-item"><span class="icon">👥</span>${img.impact}</div>` : '',
-      ].join('');
-      detailCard.classList.remove('open');
-      void detailCard.offsetWidth;
-      detailCard.classList.add('open');
-      setTimeout(() => detailCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
-    }
-
     function goTo(n) {
       current = (n + IMAGES.length) % IMAGES.length;
+      // Reset any hovered card styles
       cards.forEach(c => {
-        c.querySelector('.c3d-img').style.objectFit = 'cover';
+        c.querySelector('img').style.objectFit = 'cover';
+        c.style.background = '';
         c.style.boxShadow = '';
+        c.querySelector('.c3d-card-overlay').style.opacity = '0';
       });
-      detailCard.classList.remove('open');
-      activeDetail = -1;
       updateCarousel();
       resetAuto();
     }
