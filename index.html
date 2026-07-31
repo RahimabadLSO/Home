@@ -580,7 +580,7 @@
   </div>
 </section>
 
-  <!-- GALLERY SECTION (3D CAROUSEL) -->
+ <!-- GALLERY SECTION (3D CAROUSEL) -->
 <section id="gallery">
   <div class="section-inner">
     <div class="sec-head center reveal">
@@ -1045,145 +1045,7 @@
     if (e.key === 'Escape')     closeLightbox();
   });
 
-  // ── GALLERY 3D CAROUSEL ─────────────────────────────────────────
-  (function() {
-    const IMAGE_FOLDER = 'images/';
-    // ↓ Add your image filenames and captions here
-    const IMAGES = [
-      { src: '1.jpg', caption: '' },
-      { src: '2.jpg', caption: '' },
-      { src: '3.jpg', caption: '' },
-      { src: '4.jpg', caption: '' },
-      { src: '5.jpg', caption: '' },
-      { src: '6.jpg', caption: '' },
-      { src: '7.jpg', caption: '' },
-      { src: '8.jpg', caption: '' },
-      { src: '9.jpg', caption: '' },
-      { src: '10.jpg', caption: '' },
-      { src: '11.jpg', caption: '' },
-      { src: '12.jpg', caption: '' },
-      { src: '13.jpg', caption: '' },
-      { src: '14.jpg', caption: '' },
-      { src: '15.jpg', caption: '' },
-      { src: '16.jpg', caption: '' },
-      { src: '17.jpg', caption: '' },
-      { src: '18.jpg', caption: '' },
-      { src: '19.jpg', caption: '' },
-      { src: '20.jpg', caption: '' },
-      { src: '21.jpg', caption: '' },
-      { src: '22.jpg', caption: '' },
-      { src: '23.jpg', caption: '' },
-      { src: '24.jpg', caption: '' },
-      { src: '25.jpg', caption: '' },
-      { src: '27.jpg', caption: '' },
-      { src: '28.jpg', caption: '' },
-      { src: '29.jpg', caption: '' },
-      { src: '30.jpg', caption: '' },
-      { src: '31.jpg', caption: '' },
-      { src: '32.jpg', caption: '' },
-      { src: '33.jpg', caption: '' },
-      { src: '34.jpg', caption: '' },
-      { src: '35.jpg', caption: '' },
-      { src: '36.jpg', caption: '' },
-      { src: '37.jpg', caption: '' },
-      { src: '38.jpg', caption: '' },
-      { src: '39.jpg', caption: '' },
-      { src: '40.jpg', caption: '' },
-      { src: '41.jpg', caption: '' },
-      { src: '42.jpg', caption: '' },
-      { src: '43.jpg', caption: '' },
-      { src: '44.jpg', caption: '' },
-      { src: '45.jpg', caption: '' },
-      { src: '46.jpg', caption: '' },
-      { src: '47.jpg', caption: '' },
-      { src: '48.jpg', caption: '' },
-      { src: '49.jpg', caption: '' },
-      { src: '50.jpg', caption: '' },
-      { src: '51.jpg', caption: '' },
-      { src: '52.jpg', caption: '' },
-      { src: '53.jpg', caption: '' },
-      { src: '54.jpg', caption: '' },
-      { src: '55.jpg', caption: '' },
-      { src: '56.jpg', caption: '' },
-      { src: '57.jpg', caption: '' },
-      { src: '58.jpg', caption: '' },
-      { src: '59.jpg', caption: '' },
-      { src: '60.jpg', caption: '' },
-      { src: '61.jpg', caption: '' },
-      { src: '62.jpg', caption: '' },
-      { src: '63.jpg', caption: '' },
-      { src: '64.jpg', caption: '' },
-      { src: '65.jpg', caption: 'Before and After pictures of Jutal, Mashigon Muhallah Plantation Site. An activity of "Energy Plus Project", supported by AKRSP' },
-      { src: '66.jpg', caption: 'BoDs of RLSO meet with Mr. Amjad Hussain, Chief Minister, Gilgit Baltistan, on 17-7-2026 to congratulate and invite him to visit Rahimabad LSO' },      
-    ];
-
-    const track   = document.getElementById('c3dTrack');
-    const dotsEl  = document.getElementById('c3dDots');
-    const caption = document.getElementById('c3dCaption');
-    const prevBtn = document.getElementById('c3dPrev');
-    const nextBtn = document.getElementById('c3dNext');
-    const empty   = document.getElementById('galEmpty');
-
-    // Fullscreen elements
-    const fs        = document.getElementById('galFullscreen');
-    const fsImg     = document.getElementById('galFsImg');
-    const fsCap     = document.getElementById('galFsCaption');
-    const fsClose   = document.getElementById('galFsClose');
-    const fsPrev    = document.getElementById('galFsPrev');
-    const fsNext    = document.getElementById('galFsNext');
-
-    if (!IMAGES.length) { empty.style.display = 'block'; return; }
-    empty.style.display = 'none';
-
-    let current = 0;
-    let autoTimer;
-    let fsIndex = 0;
-    let touchStartX = 0;
-
-    // ── Build cards ──
-    const cards = [];
-    IMAGES.forEach((img, i) => {
-      const card = document.createElement('div');
-      card.className = 'c3d-card';
-      card.innerHTML = `
-        <img src="${IMAGE_FOLDER}${img.src}" alt="${img.caption || 'RLSO Gallery ' + (i+1)}" loading="lazy">
-        <div class="c3d-card-overlay"><span>${img.caption || ''}</span></div>
-      `;
-
-      const imgEl = card.querySelector('img');
-
-      // Hover → reveal full photo (object-fit: contain), no open
-      card.addEventListener('mouseenter', () => {
-        imgEl.style.objectFit = 'contain';
-        card.style.background = '#111';
-        card.style.boxShadow = '0 24px 80px rgba(201,168,76,0.3), 0 8px 32px rgba(0,0,0,0.7)';
-        card.querySelector('.c3d-card-overlay').style.opacity = '1';
-      });
-      card.addEventListener('mouseleave', () => {
-        imgEl.style.objectFit = 'cover';
-        card.style.background = '';
-        card.style.boxShadow = '';
-        card.querySelector('.c3d-card-overlay').style.opacity = '0';
-      });
-
-      // Click → fullscreen (center) or navigate (side)
-      card.addEventListener('click', () => {
-        if (i === current) openFs(i);
-        else goTo(i);
-      });
-
-      track.appendChild(card);
-      cards.push(card);
-
-      // Dot
-      const dot = document.createElement('button');
-      dot.className = 'c3d-dot' + (i === 0 ? ' active' : '');
-      dot.setAttribute('aria-label', `Slide ${i + 1}`);
-      dot.addEventListener('click', () => goTo(i));
-      dotsEl.appendChild(dot);
-    });
-
-    // ── 3D position logic ──
+  // ── 3D position logic ──
     function getCardStyle(offset, total) {
       const isMobile = window.innerWidth < 768;
       const isSmall  = window.innerWidth < 480;
@@ -1202,7 +1064,7 @@
       const tz      = -(absOff * depthMax);
       const ry      = offset * -rotY;
       const baseScale = 1 - absOff * ((1 - scaleMin) / (visible + 1));
-      const scale   = absOff === 0 ? baseScale * 1.5 : baseScale;
+      const scale   = absOff === 0 ? baseScale * 1.25 : baseScale;
       const opacity = absOff > visible - 0.5 ? 0.2 : 1 - absOff * 0.18;
       const zIndex  = 10 - absOff;
 
