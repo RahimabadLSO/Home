@@ -1201,7 +1201,8 @@
       const tx      = offset * spacing;
       const tz      = -(absOff * depthMax);
       const ry      = offset * -rotY;
-      const scale   = 1 - absOff * ((1 - scaleMin) / (visible + 1));
+      const baseScale = 1 - absOff * ((1 - scaleMin) / (visible + 1));
+      const scale   = absOff === 0 ? baseScale * 1.5 : baseScale;
       const opacity = absOff > visible - 0.5 ? 0.2 : 1 - absOff * 0.18;
       const zIndex  = 10 - absOff;
 
